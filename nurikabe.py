@@ -38,33 +38,41 @@ class Nurikabe:
         return [[1] * self.columns for _ in range(self.rows)]
 
     def get_points(self):
-        # select possible water points without roots
-        all_points = []
 
         # get island roots tuples
         island_tuples = set()
         for island in self.islands:
             island_tuples.add((island.y, island.x))
 
-        # get points that are not island root
-        for y in range(self.rows):
-            for x in range(self.columns):
-                if (y, x) not in island_tuples:
-                    all_points.append((y, x))
-
         # check for water points (points between roots)
-        water_points = []
-        for y in range(self.rows):
-            for x in range(self.columns):
+        water_points = set()
+        for y in range(1, self.rows - 1):
+            for x in range(1, self.columns - 1):
                 if (y - 1, x) in island_tuples and (y + 1, x) in island_tuples or (y, x - 1) in island_tuples and (
                         y, x + 1) in island_tuples:
-                    water_points.append((y, x))
+                    water_points.add((y, x))
 
-        # remove water points from all points
-        for water_p in water_points:
-            all_points.remove(water_p)
+        # add neighbours of '1' to water points
+        for island in self.islands:
+            if island.size == 1:
+                y, x = island.y, island.x
+                if self.is_valid(self.board, y - 1, x):
+                    water_points.add((y - 1, x))
+                if self.is_valid(self.board, y + 1, x):
+                    water_points.add((y + 1, x))
+                if self.is_valid(self.board, y, x - 1):
+                    water_points.add((y, x - 1))
+                if self.is_valid(self.board, y, x + 1):
+                    water_points.add((y, x + 1))
 
-        return all_points, water_points
+        # select all possible water points
+        all_points = []
+        for y in range(self.rows):
+            for x in range(self.columns):
+                if (y, x) not in water_points and (y, x) not in island_tuples:
+                    all_points.append((y, x))
+
+        return all_points, list(water_points)
 
     def get_solution(self):
         """
@@ -218,8 +226,6 @@ class Nurikabe:
         np_board = np.array(board)
         data = data * np_board
         img = Image.fromarray(data.astype(np.uint8), mode='L')
-        size = 128, 128
-        img.thumbnail(size)
         img.save(os.path.join('images', f'{file_name}.png'))
         img.show()
 
@@ -229,6 +235,7 @@ class Nurikabe:
             n = Nurikabe(board)
             solution = n.get_solution()
             if solution:
+                print(f'Solved board_{i}')
                 n.save_board(solution, f'board_{i}')
             else:
                 print(f'No solution for board_{i}')
