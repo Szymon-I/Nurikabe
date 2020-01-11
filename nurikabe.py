@@ -91,8 +91,16 @@ class Nurikabe:
             for x, y in water_points:
                 actual_board[x][y] = 0
             # validate each combination and return board if valid
+            temp_board=copy.deepcopy(actual_board)
+            for y in range(len(temp_board)):
+                for x in range(len(temp_board[0])):
+                    if temp_board[y][x]==1:
+                        temp_board[y][x]=0
+                    else:
+                        temp_board[y][x]=1
             if self.check_board(actual_board):
-                return actual_board
+                if len(water_points)==0 or self.RegionSize(temp_board,water_points[0][0],water_points[0][1]) == points_to_pick+len(water_points):
+                    return actual_board
         return []
 
     def isSafe(self, board, row, col, visited):
@@ -227,7 +235,7 @@ class Nurikabe:
         data = data * np_board
         img = Image.fromarray(data.astype(np.uint8), mode='L')
         img.save(os.path.join('images', f'{file_name}.png'))
-        img.show()
+        #img.show()
 
     @staticmethod
     def solve_all():
@@ -243,3 +251,11 @@ class Nurikabe:
 
 if __name__ == '__main__':
     Nurikabe.solve_all()
+    #i=13
+    # n = Nurikabe(boards[i])
+    # solution = n.get_solution()
+    # if solution:
+    #     print(f'Solved board_{i}')
+    #     n.save_board(solution, f'board_{i}')
+    # else:
+    #     print(f'No solution for board_{i}')
